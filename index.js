@@ -1,9 +1,10 @@
 //importing
 const express = require('express');
-
+const env = require('dotenv')
 
 //Making express app
 const app = express();
+env.config()
 
 console.log("Hello World!")
 
@@ -18,5 +19,5 @@ app.get("/test", (req, res) => {
 const PORT = process.env.PORT;
 // run the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${5000}`)
+    console.log(`Server is running on port ${PORT}`)
 })
