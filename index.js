@@ -14,6 +14,9 @@ app.get("/test", (req, res) => {
     res.status(200).json("Hello from server");
 })
 
+//register
+app.use('/api/user', require('./routes/userRoutes'));
+
 
 // defining port
 const PORT = process.env.PORT;
