@@ -1,5 +1,5 @@
 // importing any necessary packages
-const mongoose = require ("mongoose")
+const mongoose = require("mongoose")
 // function (Any)
 const connectDB = () => {
     mongoose.connect(process.env.DB_URL).then(() => {

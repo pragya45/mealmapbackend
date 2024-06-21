@@ -1,26 +1,29 @@
-//importing
+// Importing
 const express = require('express');
-const env = require('dotenv')
+const env = require('dotenv');
+const connectDB = require('./database/db');
 
-//Making express app
 const app = express();
-env.config()
+env.config();
 
-console.log("Hello World!")
+// Middleware to parse JSON
+app.use(express.json());
 
+// Connect to database
+connectDB();
 
-// creating test route
+// Creating test route
 app.get("/test", (req, res) => {
     res.status(200).json("Hello from server");
-})
+});
 
-//register
-app.use('/api/user', require('./routes/userRoutes'))
+// Register route
+app.use('/api/users', require('./routes/userRoutes')); // Make sure this path is correct
 
-
-// defining port
+// Defining port
 const PORT = process.env.PORT;
-// run the server
+
+// Run the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`)
-})
+    console.log(`Server is running on port ${PORT}`);
+});
