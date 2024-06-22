@@ -17,7 +17,7 @@ app.get("/test", (req, res) => {
     res.status(200).json("Hello from server");
 });
 
-// Register route
+// user auth route
 app.use('/api/user', require('./routes/userRoutes')); // Correct path
 
 // Defining port
