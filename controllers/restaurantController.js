@@ -58,8 +58,29 @@ const addRestaurant = async (req, res) => {
     }
 };
 
+const searchRestaurants = async (req, res) => {
+    const query = req.query.query;
+    try {
+        const restaurants = await Restaurant.find({
+            name: { $regex: query, $options: 'i' }  // Case-insensitive search
+        });
+        res.status(200).json({
+            success: true,
+            restaurants
+        });
+    } catch (error) {
+        console.error('Error searching restaurants:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getRestaurants,
     getRestaurantById,
-    addRestaurant
+    addRestaurant,
+    searchRestaurants
 };
