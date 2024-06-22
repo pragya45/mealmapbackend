@@ -18,10 +18,10 @@ app.get("/test", (req, res) => {
 });
 
 // Register route
-app.use('/api/users', require('./routes/userRoutes')); // Make sure this path is correct
+app.use('/api/user', require('./routes/userRoutes')); // Correct path
 
 // Defining port
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 // Run the server
 app.listen(PORT, () => {
