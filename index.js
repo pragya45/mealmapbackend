@@ -18,7 +18,10 @@ app.get("/test", (req, res) => {
 });
 
 // user auth route
-app.use('/api/user', require('./routes/userRoutes')); // Correct path
+app.use('/api/user', require('./routes/userRoutes'));
+
+//restaurant routes
+app.use('/api/restaurants', require('./routes/restaurantRoutes'));
 
 // Defining port
 const PORT = process.env.PORT || 5000;
