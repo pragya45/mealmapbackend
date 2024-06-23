@@ -28,25 +28,39 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
+    savedRestaurants: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Restaurant'
+        }
+    ],
+    likedRestaurants: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Restaurant'
+        }
+    ]
 });
 
+// Encrypting passwords 
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
-        return next();
+        next();
     }
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-});
+    this.password = await bcrypt.hash(this.password, 10)
+})
 
+// Comparing password 
 userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
-};
+}
 
+// Return JWT Token
 userSchema.methods.getJwtToken = function () {
     return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
-        expiresIn: '1h'
+        expiresIn: 3600 // Token will expire in one hour
     });
-};
+}
 
 const User = mongoose.model('User', userSchema);
 
