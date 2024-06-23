@@ -1,36 +1,34 @@
-// restaurantModel.js
-
 const mongoose = require('mongoose');
 
 const restaurantSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: true,
     },
     location: {
         type: String,
-        required: true
+        required: true,
     },
     description: {
         type: String,
-        required: false
+        required: true,
     },
     rating: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     reviews: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Review'
-        }
-    ]
+            ref: 'Review',
+        },
+    ],
 });
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);

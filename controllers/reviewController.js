@@ -1,21 +1,20 @@
+const mongoose = require('mongoose');
 const Review = require('../model/reviewModel');
 const Restaurant = require('../model/restaurantModel');
 
 const addReview = async (req, res) => {
-    const { restaurantId, rating, comment } = req.body;
-    const userId = req.user._id; // Assuming req.user is populated by the auth middleware
+    const { rating, comment, restaurantId } = req.body;
+    const userId = req.user._id;
 
     try {
-        const newReview = new Review({
-            user: userId,
-            restaurant: restaurantId,
-            rating,
-            comment
-        });
+        // Validate restaurant ID
+        if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid restaurant ID'
+            });
+        }
 
-        const savedReview = await newReview.save();
-
-        // Optionally update restaurant's average rating
         const restaurant = await Restaurant.findById(restaurantId);
         if (!restaurant) {
             return res.status(404).json({
@@ -23,12 +22,24 @@ const addReview = async (req, res) => {
                 message: 'Restaurant not found'
             });
         }
-        restaurant.reviews.push(savedReview._id);
+
+        const newReview = new Review({
+            rating,
+            comment,
+            user: userId,
+            restaurant: restaurantId,
+        });
+
+        await newReview.save();
+
+        // Add the review to the restaurant's reviews array
+        restaurant.reviews.push(newReview._id);
         await restaurant.save();
 
         res.status(201).json({
             success: true,
-            review: savedReview
+            review: newReview,
+            message: 'Review added successfully'
         });
     } catch (error) {
         console.error('Error adding review:', error.message);
@@ -40,9 +51,19 @@ const addReview = async (req, res) => {
     }
 };
 
-const getReviewsForRestaurant = async (req, res) => {
+const getReviewsByRestaurantId = async (req, res) => {
+    const { restaurantId } = req.params;
+
+    // Validate restaurant ID
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid restaurant ID'
+        });
+    }
+
     try {
-        const reviews = await Review.find({ restaurant: req.params.restaurantId }).populate('user', 'fullName');
+        const reviews = await Review.find({ restaurant: restaurantId }).populate('user', 'fullName');
         res.status(200).json({
             success: true,
             reviews
@@ -59,5 +80,5 @@ const getReviewsForRestaurant = async (req, res) => {
 
 module.exports = {
     addReview,
-    getReviewsForRestaurant
+    getReviewsByRestaurantId
 };
