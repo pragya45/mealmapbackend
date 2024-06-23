@@ -23,7 +23,11 @@ const restaurantSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Review'
         }
-    ]
+    ],
+    isFeatured: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);

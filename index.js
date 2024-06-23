@@ -26,7 +26,9 @@ app.use('/api/restaurants', require('./routes/restaurantRoutes'));
 // review routes
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 
-// Defining port
+//featured restaurant routes
+app.use('/api/featured', require('./routes/featuredRoutes'));
+
 const PORT = process.env.PORT || 5000;
 
 // Run the server
