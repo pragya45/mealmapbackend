@@ -3,7 +3,7 @@ const Restaurant = require('../model/restaurantModel');
 
 const getRestaurants = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find();
+        const restaurants = await Restaurant.find().populate('category', 'name');
         res.status(200).json({
             success: true,
             restaurants
@@ -54,7 +54,17 @@ const getRestaurantById = async (req, res) => {
 
 const addRestaurant = async (req, res) => {
     try {
-        const newRestaurant = new Restaurant(req.body);
+        const { name, category, location, description, rating } = req.body;
+
+        // Validate the category ID
+        if (!mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid category ID'
+            });
+        }
+
+        const newRestaurant = new Restaurant({ name, category, location, description, rating });
         await newRestaurant.save();
         res.status(201).json({
             success: true,

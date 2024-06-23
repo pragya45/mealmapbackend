@@ -1,3 +1,5 @@
+// restaurantModel.js
+
 const mongoose = require('mongoose');
 
 const restaurantSchema = new mongoose.Schema({
@@ -6,7 +8,8 @@ const restaurantSchema = new mongoose.Schema({
         required: true
     },
     category: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
         required: true
     },
     location: {
@@ -15,7 +18,7 @@ const restaurantSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: false // or true if you want it mandatory
+        required: false
     },
     rating: {
         type: Number,

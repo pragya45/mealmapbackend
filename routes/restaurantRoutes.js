@@ -8,7 +8,6 @@ const {
     searchRestaurants
 } = require('../controllers/restaurantController');
 const { authGuard, authGuardAdmin } = require('../middleware/authGuard');
-
 const router = express.Router();
 
 router.get('/search', searchRestaurants); // Ensure this is defined first
