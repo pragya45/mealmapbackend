@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 
+// Middleware to protect routes for authenticated users
 const authGuard = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -19,11 +20,11 @@ const authGuard = (req, res, next) => {
 
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded Data:", decodedData); // Add this line
+        console.log("Decoded Data:", decodedData); // Debugging line
         req.user = { _id: decodedData.id }; // Adjust according to your token's payload
         next();
     } catch (error) {
-        console.error(error); // Log the error for debugging
+        console.error("User token verification error:", error); // Debugging line
         return res.status(401).json({
             success: false,
             message: "Invalid token!"
@@ -31,8 +32,7 @@ const authGuard = (req, res, next) => {
     }
 };
 
-
-
+// Middleware to protect routes for admin users
 const authGuardAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -53,7 +53,7 @@ const authGuardAdmin = (req, res, next) => {
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
         console.log("Decoded Admin Data:", decodedData); // Debugging line
-        req.user = { _id: decodedData.id }; // Make sure 'id' matches the property in your JWT payload
+        req.user = { _id: decodedData.id, isAdmin: decodedData.isAdmin }; // Make sure 'id' and 'isAdmin' matches the property in your JWT payload
         if (!decodedData.isAdmin) { // This assumes your token has an 'isAdmin' property
             return res.status(403).json({
                 success: false,

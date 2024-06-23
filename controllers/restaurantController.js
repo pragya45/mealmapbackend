@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Restaurant = require('../model/restaurantModel');
 
 const getRestaurants = async (req, res) => {
@@ -18,8 +19,18 @@ const getRestaurants = async (req, res) => {
 };
 
 const getRestaurantById = async (req, res) => {
+    const restaurantId = req.params.id;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid restaurant ID'
+        });
+    }
+
     try {
-        const restaurant = await Restaurant.findById(req.params.id).populate('reviews.user', 'fullName');
+        const restaurant = await Restaurant.findById(restaurantId).populate('reviews.user', 'fullName');
         if (!restaurant) {
             return res.status(404).json({
                 success: false,
@@ -39,6 +50,7 @@ const getRestaurantById = async (req, res) => {
         });
     }
 };
+
 
 const addRestaurant = async (req, res) => {
     try {

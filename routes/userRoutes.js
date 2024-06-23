@@ -1,11 +1,17 @@
-const router = require('express').Router();
-const authController = require('../controllers/authController');
+const express = require('express');
+const { authGuard, authGuardAdmin } = require('../middleware/authGuard');
+const { register, login } = require('../controllers/authController');
+const router = express.Router();
 
-// Register
-router.post('/register', authController.register);
+router.post('/register', register);
+router.post('/login', login);
 
-// Login
-router.post('/login', authController.login);
+router.get('/protected-route', authGuard, (req, res) => {
+    res.status(200).json({ success: true, message: "You have access to this route" });
+});
 
+router.get('/admin-route', authGuardAdmin, (req, res) => {
+    res.status(200).json({ success: true, message: "You have access to this admin route" });
+});
 
 module.exports = router;

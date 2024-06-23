@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../model/userModel');
 
 const register = async (req, res) => {
-    console.log(req.body);
     const { fullName, email, password } = req.body;
     if (!fullName || !email || !password) {
         return res.status(400).json({
@@ -38,8 +37,6 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    console.log(req.body);
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -58,11 +55,7 @@ const login = async (req, res) => {
             });
         }
 
-        console.log(`Provided password: ${password}`);
-        console.log(`Stored hashed password: ${user.password}`);
-
         const isMatched = await bcrypt.compare(password, user.password);
-        console.log(`Password match status: ${isMatched}`);
 
         if (!isMatched) {
             return res.status(400).json({

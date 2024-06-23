@@ -5,28 +5,28 @@ const jwt = require('jsonwebtoken');
 const userSchema = new mongoose.Schema({
     fullName: {
         type: String,
-        required: true,
+        required: [true, 'Full name is required']
     },
     email: {
         type: String,
-        required: true,
+        required: [true, 'Email is required'],
         unique: true,
+        match: [/.+\@.+\..+/, 'Please fill a valid email address']
     },
     password: {
         type: String,
-        required: true,
+        required: [true, 'Password is required'],
+        minlength: [8, 'Password must be at least 8 characters long']
     },
     isAdmin: {
         type: Boolean,
-        default: false,
+        default: false
     },
     bio: {
-        type: String,
-        required: false,
+        type: String
     },
     phoneNo: {
-        type: String,
-        required: false,
+        type: String
     },
     savedRestaurants: [
         {
@@ -42,22 +42,23 @@ const userSchema = new mongoose.Schema({
     ]
 });
 
-// Encrypting passwords 
+// Encrypting passwords
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         next();
     }
-    this.password = await bcrypt.hash(this.password, 10)
-})
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
 
-// Comparing password 
+// Comparing password
 userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 }
 
 // Return JWT Token
 userSchema.methods.getJwtToken = function () {
-    return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
+    return jwt.sign({ id: this.id, isAdmin: this.isAdmin }, process.env.JWT_SECRET, {
         expiresIn: 3600 // Token will expire in one hour
     });
 }
