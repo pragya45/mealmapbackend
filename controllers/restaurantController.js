@@ -58,6 +58,56 @@ const addRestaurant = async (req, res) => {
     }
 };
 
+const updateRestaurant = async (req, res) => {
+    try {
+        const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!updatedRestaurant) {
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            restaurant: updatedRestaurant
+        });
+    } catch (error) {
+        console.error('Error updating restaurant:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+const deleteRestaurant = async (req, res) => {
+    try {
+        const deletedRestaurant = await Restaurant.findByIdAndDelete(req.params.id);
+        if (!deletedRestaurant) {
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Restaurant deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting restaurant:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 const searchRestaurants = async (req, res) => {
     const query = req.query.query;
     try {
@@ -82,5 +132,7 @@ module.exports = {
     getRestaurants,
     getRestaurantById,
     addRestaurant,
+    updateRestaurant,
+    deleteRestaurant,
     searchRestaurants
 };

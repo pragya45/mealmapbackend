@@ -20,8 +20,11 @@ app.get("/test", (req, res) => {
 // user auth route
 app.use('/api/user', require('./routes/userRoutes'));
 
-//restaurant routes
+// restaurant routes
 app.use('/api/restaurants', require('./routes/restaurantRoutes'));
+
+// review routes
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 // Defining port
 const PORT = process.env.PORT || 5000;

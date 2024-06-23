@@ -3,32 +3,25 @@ const mongoose = require('mongoose');
 const restaurantSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
+        required: true
     },
     category: {
         type: String,
-        required: true,
+        required: true
     },
     location: {
         type: String,
-        required: true,
+        required: true
     },
     rating: {
         type: Number,
-        default: 0,
+        required: false,
+        default: 0
     },
     reviews: [
         {
-            user: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-            },
-            rating: Number,
-            comment: String,
-            date: {
-                type: Date,
-                default: Date.now
-            }
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Review'
         }
     ]
 });

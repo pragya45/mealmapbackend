@@ -19,7 +19,7 @@ const authGuard = (req, res, next) => {
 
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decodedData); // Debugging line to see the contents of decodedData
+        console.log("Decoded Data:", decodedData); // Add this line
         req.user = { _id: decodedData.id }; // Adjust according to your token's payload
         next();
     } catch (error) {
@@ -30,6 +30,8 @@ const authGuard = (req, res, next) => {
         });
     }
 };
+
+
 
 const authGuardAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -50,6 +52,7 @@ const authGuardAdmin = (req, res, next) => {
 
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded Admin Data:", decodedData); // Debugging line
         req.user = { _id: decodedData.id }; // Make sure 'id' matches the property in your JWT payload
         if (!decodedData.isAdmin) { // This assumes your token has an 'isAdmin' property
             return res.status(403).json({
@@ -59,6 +62,7 @@ const authGuardAdmin = (req, res, next) => {
         }
         next();
     } catch (error) {
+        console.error("Admin token verification error:", error); // Debugging line
         return res.status(401).json({
             success: false,
             message: "Invalid token!"
