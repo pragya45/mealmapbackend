@@ -13,6 +13,10 @@ const restaurantSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        required: false // or true if you want it mandatory
+    },
     rating: {
         type: Number,
         required: false,
@@ -23,11 +27,7 @@ const restaurantSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Review'
         }
-    ],
-    isFeatured: {
-        type: Boolean,
-        default: false
-    }
+    ]
 });
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);
