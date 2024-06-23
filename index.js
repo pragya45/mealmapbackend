@@ -29,6 +29,9 @@ app.use('/api/reviews', require('./routes/reviewRoutes'));
 //featured restaurant routes
 app.use('/api/featured', require('./routes/featuredRoutes'));
 
+// user restaurant routes (save and like)
+app.use('/api/user-restaurants', require('./routes/userRestaurantRoutes'));
+
 const PORT = process.env.PORT || 5000;
 
 // Run the server
