@@ -11,12 +11,15 @@ const restaurantSchema = new mongoose.Schema({
         required: true,
     },
     location: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        required: true,
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true,
+        },
+        coordinates: {
+            type: [Number],
+            required: true,
+        },
     },
     rating: {
         type: Number,
@@ -30,6 +33,9 @@ const restaurantSchema = new mongoose.Schema({
         },
     ],
 });
+
+// Create a 2dsphere index on the location field
+restaurantSchema.index({ location: '2dsphere' });
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);
 

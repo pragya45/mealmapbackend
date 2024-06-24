@@ -6,7 +6,9 @@ const {
     updateRestaurant,
     deleteRestaurant,
     searchRestaurants,
-    filterRestaurantsByCategory
+    filterRestaurantsByCategory,
+    filterRestaurantsByDistance,
+    filterRestaurantsByRating
 } = require('../controllers/restaurantController');
 const { authGuard, authGuardAdmin } = require('../middleware/authGuard');
 const router = express.Router();
@@ -17,6 +19,8 @@ router.get('/:id', getRestaurantById);
 router.post('/', authGuardAdmin, addRestaurant);
 router.put('/:id', authGuardAdmin, updateRestaurant);
 router.delete('/:id', authGuardAdmin, deleteRestaurant);
-router.get('/filter', filterRestaurantsByCategory);  // This is the filter route
+router.get('/filter', filterRestaurantsByCategory);
+router.get('/filter/distance', filterRestaurantsByDistance);
+router.get('/filter/rating', filterRestaurantsByRating);
 
 module.exports = router;
