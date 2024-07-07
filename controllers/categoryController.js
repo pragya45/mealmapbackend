@@ -2,7 +2,13 @@ const Category = require('../model/categoryModel');
 
 const getCategories = async (req, res) => {
     try {
-        const categories = await Category.find();
+        let categories;
+        if (req.query.query) {
+            const regex = new RegExp(req.query.query, 'i'); // 'i' for case-insensitive
+            categories = await Category.find({ name: { $regex: regex } });
+        } else {
+            categories = await Category.find();
+        }
         res.status(200).json({
             success: true,
             categories

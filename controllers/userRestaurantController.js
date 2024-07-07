@@ -48,10 +48,23 @@ const getSavedRestaurants = async (req, res) => {
     }
 };
 
+
 const getLikedRestaurants = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).populate('likedRestaurants');
-        res.status(200).json({ success: true, likedRestaurants: user.likedRestaurants });
+        const likedRestaurants = user.likedRestaurants.map(restaurant => ({
+            _id: restaurant._id,
+            name: restaurant.name,
+            category: restaurant.category,
+            description: restaurant.description,
+            rating: restaurant.rating,
+            reviews: restaurant.reviews,
+            isFeatured: restaurant.isFeatured,
+            image: restaurant.image,
+            location: restaurant.location // Ensure location is included
+        }));
+
+        res.status(200).json({ success: true, likedRestaurants });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }

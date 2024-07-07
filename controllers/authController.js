@@ -20,7 +20,8 @@ const register = async (req, res) => {
             });
         }
 
-        const user = await User.create({ fullName, email, password });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await User.create({ fullName, email, password: hashedPassword });
         res.status(201).json({
             success: true,
             user,
@@ -49,6 +50,7 @@ const login = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user) {
+            console.log('User not found');
             return res.status(400).json({
                 success: false,
                 message: "User does not exist",
@@ -56,8 +58,8 @@ const login = async (req, res) => {
         }
 
         const isMatched = await bcrypt.compare(password, user.password);
-
         if (!isMatched) {
+            console.log('Password does not match');
             return res.status(400).json({
                 success: false,
                 message: "Invalid credentials"

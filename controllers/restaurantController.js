@@ -1,75 +1,54 @@
 const mongoose = require('mongoose');
 const Restaurant = require('../model/restaurantModel');
+const parser = require('../middleware/cloudinaryConfig');
 
-const getRestaurants = async (req, res) => {
+const addRestaurant = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find().populate('category', 'name');
-        res.status(200).json({
-            success: true,
-            restaurants
-        });
-    } catch (error) {
-        console.error('Error fetching restaurants:', error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
+        const { name, category, description, rating, isFeatured, place } = req.body;
 
-const getRestaurantById = async (req, res) => {
-    const restaurantId = req.params.id;
-    console.log('Fetching restaurant with ID:', restaurantId); // Add this line for logging
-
-    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid restaurant ID'
-        });
-    }
-
-    try {
-        const restaurant = await Restaurant.findById(restaurantId).populate('reviews.user', 'fullName');
-        if (!restaurant) {
-            console.log('Restaurant not found:', restaurantId); // Add this line for logging
-            return res.status(404).json({
+        if (!mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({
                 success: false,
-                message: 'Restaurant not found'
+                message: 'Invalid category ID',
             });
         }
-        res.status(200).json({
+
+        const featured = req.user.isAdmin ? isFeatured === 'true' : false;
+
+        const newRestaurant = new Restaurant({
+            name,
+            category,
+            description,
+            rating: parseFloat(rating),
+            isFeatured: featured,
+            image: req.file.path,
+            place, // Ensure place is included here
+        });
+
+        await newRestaurant.save();
+        res.status(201).json({
             success: true,
-            restaurant
+            restaurant: newRestaurant,
         });
     } catch (error) {
-        console.error('Error fetching restaurant by ID:', error.message);
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-const filterRestaurantsByCategory = async (req, res) => {
-    const { categoryId } = req.query;
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid category ID',
-        });
-    }
-
+const getFeaturedRestaurants = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find({ category: categoryId }).populate('category', 'name');
+        const restaurants = await Restaurant.find({ isFeatured: true }).select('name image place');
+        console.log('Fetched featured restaurants:', restaurants); // Log the fetched data
         res.status(200).json({
             success: true,
             restaurants,
         });
     } catch (error) {
-        console.error('Error filtering restaurants by category:', error.message);
+        console.error('Error fetching featured restaurants:', error.message);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -79,169 +58,64 @@ const filterRestaurantsByCategory = async (req, res) => {
 };
 
 
-const addRestaurant = async (req, res) => {
+const getRestaurants = async (req, res) => {
     try {
-        const { name, category, location, description, rating } = req.body;
-
-        // Validate the category ID
-        if (!mongoose.Types.ObjectId.isValid(category)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid category ID'
-            });
-        }
-
-        const newRestaurant = new Restaurant({ name, category, location, description, rating });
-        await newRestaurant.save();
-        res.status(201).json({
-            success: true,
-            restaurant: newRestaurant
-        });
-    } catch (error) {
-        console.error('Error adding restaurant:', error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
-
-const updateRestaurant = async (req, res) => {
-    try {
-        const updatedRestaurant = await Restaurant.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
-        if (!updatedRestaurant) {
-            return res.status(404).json({
-                success: false,
-                message: 'Restaurant not found'
-            });
-        }
+        const restaurants = await Restaurant.find();
         res.status(200).json({
             success: true,
-            restaurant: updatedRestaurant
+            restaurants,
         });
     } catch (error) {
-        console.error('Error updating restaurant:', error.message);
+        console.error('Error fetching restaurants:', error.message);
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-const deleteRestaurant = async (req, res) => {
-    try {
-        const deletedRestaurant = await Restaurant.findByIdAndDelete(req.params.id);
-        if (!deletedRestaurant) {
-            return res.status(404).json({
-                success: false,
-                message: 'Restaurant not found'
-            });
-        }
-        res.status(200).json({
-            success: true,
-            message: 'Restaurant deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error deleting restaurant:', error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
-
+//search 
 const searchRestaurants = async (req, res) => {
-    const query = req.query.query;
     try {
+        const query = req.query.q;
         const restaurants = await Restaurant.find({
-            name: { $regex: query, $options: 'i' }  // Case-insensitive search
+            $or: [
+                { name: { $regex: query, $options: 'i' } },
+                { description: { $regex: query, $options: 'i' } },
+                { place: { $regex: query, $options: 'i' } }
+            ]
         });
         res.status(200).json({
             success: true,
             restaurants
         });
     } catch (error) {
-        console.error('Error searching restaurants:', error.message);
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-// Filter restaurants by distance
-const filterRestaurantsByDistance = async (req, res) => {
-    const { lat, lon } = req.query;
-
-    if (!lat || !lon) {
-        return res.status(400).json({
-            success: false,
-            message: 'Latitude and longitude are required'
-        });
-    }
-
+// Get restaurant details by ID
+const getRestaurantById = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find({
-            location: {
-                $near: {
-                    $geometry: {
-                        type: "Point",
-                        coordinates: [parseFloat(lon), parseFloat(lat)]
-                    },
-                    $maxDistance: 5000 // Example: 5 km radius
-                }
-            }
-        }).populate('category', 'name');
-
-        res.status(200).json({
-            success: true,
-            restaurants
-        });
+        const restaurant = await Restaurant.findById(req.params.id).populate('category reviews');
+        if (!restaurant) {
+            return res.status(404).json({ success: false, message: 'Restaurant not found' });
+        }
+        res.status(200).json({ success: true, restaurant });
     } catch (error) {
-        console.error('Error filtering restaurants by distance:', error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
-
-// Filter restaurants by rating
-const filterRestaurantsByRating = async (req, res) => {
-    try {
-        const restaurants = await Restaurant.find().sort({ rating: -1 }).populate('category', 'name');
-
-        res.status(200).json({
-            success: true,
-            restaurants
-        });
-    } catch (error) {
-        console.error('Error filtering restaurants by rating:', error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
 
 module.exports = {
-    getRestaurants,
-    getRestaurantById,
     addRestaurant,
-    updateRestaurant,
-    deleteRestaurant,
+    getFeaturedRestaurants,
+    getRestaurants,
     searchRestaurants,
-    filterRestaurantsByCategory,
-    filterRestaurantsByDistance,
-    filterRestaurantsByRating
+    getRestaurantById
 };

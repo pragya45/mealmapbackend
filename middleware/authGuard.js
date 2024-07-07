@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-// Middleware to protect routes for authenticated users
 const authGuard = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -20,11 +19,10 @@ const authGuard = (req, res, next) => {
 
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded Data:", decodedData); // Debugging line
-        req.user = { _id: decodedData.id }; // Adjust according to your token's payload
+        req.user = { _id: decodedData.id };
         next();
     } catch (error) {
-        console.error("User token verification error:", error); // Debugging line
+        console.error("User token verification error:", error);
         return res.status(401).json({
             success: false,
             message: "Invalid token!"
@@ -32,7 +30,6 @@ const authGuard = (req, res, next) => {
     }
 };
 
-// Middleware to protect routes for admin users
 const authGuardAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -52,9 +49,8 @@ const authGuardAdmin = (req, res, next) => {
 
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded Admin Data:", decodedData); // Debugging line
-        req.user = { _id: decodedData.id, isAdmin: decodedData.isAdmin }; // Make sure 'id' and 'isAdmin' matches the property in your JWT payload
-        if (!decodedData.isAdmin) { // This assumes your token has an 'isAdmin' property
+        req.user = { _id: decodedData.id, isAdmin: decodedData.isAdmin };
+        if (!decodedData.isAdmin) {
             return res.status(403).json({
                 success: false,
                 message: "Permission denied!"
@@ -62,7 +58,7 @@ const authGuardAdmin = (req, res, next) => {
         }
         next();
     } catch (error) {
-        console.error("Admin token verification error:", error); // Debugging line
+        console.error("Admin token verification error:", error);
         return res.status(401).json({
             success: false,
             message: "Invalid token!"

@@ -1,4 +1,3 @@
-// Importing
 const express = require('express');
 const env = require('dotenv');
 const connectDB = require('./database/db');
@@ -17,22 +16,22 @@ app.get("/test", (req, res) => {
     res.status(200).json("Hello from server");
 });
 
-// user auth route
+// Auth route
+app.use('/api/user', require('./routes/authRoutes'));
+
+// User edit delete
 app.use('/api/user', require('./routes/userRoutes'));
 
-// restaurant routes
+// Restaurant routes
 app.use('/api/restaurants', require('./routes/restaurantRoutes'));
 
-// review routes
+// Review routes
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 
-//featured restaurant routes
-app.use('/api/featured', require('./routes/featuredRoutes'));
-
-// user restaurant routes (save and like)
+// User restaurant routes (save and like)
 app.use('/api/user-restaurants', require('./routes/userRestaurantRoutes'));
 
-//category routes
+// Category routes
 app.use('/api/categories', require('./routes/categoryRoutes'));
 
 const PORT = process.env.PORT || 5000;
