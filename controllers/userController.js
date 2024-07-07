@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../model/userModel');
 
 // Get User Profile
@@ -24,37 +25,6 @@ const getUserProfile = async (req, res) => {
         });
     }
 };
-
-// Update User Profile
-// const updateUserProfile = async (req, res) => {
-//     const { fullName, email, gender, phoneNumber, location, bio } = req.body;
-//     try {
-//         const updatedUser = await User.findByIdAndUpdate(
-//             req.user._id,
-//             { fullName, email, gender, phoneNumber, location, bio },
-//             { new: true, runValidators: true }
-//         ).select('-password'); // exclude password
-
-//         if (!updatedUser) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "User not found"
-//             });
-//         }
-
-//         res.status(200).json({
-//             success: true,
-//             user: updatedUser
-//         });
-//     } catch (error) {
-//         console.error('Error updating user profile:', error.message);
-//         res.status(500).json({
-//             success: false,
-//             message: "Server error",
-//             error: error.message
-//         });
-//     }
-// };
 
 const updateUserProfile = async (req, res) => {
     try {
@@ -94,43 +64,36 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-// Change Password
+//change-password
 const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     try {
-        console.log("Finding user...");
         const user = await User.findById(req.user._id);
         if (!user) {
-            console.log("User not found");
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             });
         }
 
-        console.log("Comparing current password...");
         const isMatched = await bcrypt.compare(currentPassword, user.password);
         if (!isMatched) {
-            console.log("Current password is incorrect");
             return res.status(400).json({
                 success: false,
                 message: "Current password is incorrect"
             });
         }
 
-        console.log("Hashing new password...");
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
         await user.save();
 
-        console.log("Password changed successfully");
         res.status(200).json({
             success: true,
             message: "Password changed successfully"
         });
     } catch (error) {
-        console.error('Error changing password:', error.message);
         res.status(500).json({
             success: false,
             message: "Server error",
@@ -139,13 +102,12 @@ const changePassword = async (req, res) => {
     }
 };
 
+
 // Delete Account
 const deleteAccount = async (req, res) => {
     try {
-        console.log("Finding user...");
         const user = await User.findById(req.user._id);
         if (!user) {
-            console.log("User not found");
             return res.status(404).json({
                 success: false,
                 message: "User not found"
@@ -153,7 +115,6 @@ const deleteAccount = async (req, res) => {
         }
 
         await User.findByIdAndDelete(req.user._id);
-        console.log("User deleted successfully");
         res.status(200).json({
             success: true,
             message: "Account deleted successfully"
@@ -167,7 +128,6 @@ const deleteAccount = async (req, res) => {
         });
     }
 };
-
 
 module.exports = {
     getUserProfile,

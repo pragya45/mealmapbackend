@@ -89,7 +89,35 @@ const login = async (req, res) => {
     }
 };
 
+const refreshToken = async (req, res) => {
+    const oldToken = req.body.token;
+
+    if (!oldToken) {
+        return res.status(400).json({ message: "Token is required" });
+    }
+
+    try {
+        // Verify the old token
+        const decoded = jwt.verify(oldToken, process.env.JWT_SECRET, { ignoreExpiration: true });
+
+        // Find the user
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Issue a new token
+        const newToken = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        res.status(200).json({ token: newToken });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to refresh token", error: error.message });
+    }
+};
+
+
 module.exports = {
     register,
-    login
+    login,
+    refreshToken
 };

@@ -33,7 +33,7 @@ const restaurantSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    place: { // Ensure this field exists
+    place: {
         type: String,
         required: true,
     }

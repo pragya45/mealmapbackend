@@ -17,7 +17,7 @@ app.get("/test", (req, res) => {
 });
 
 // Auth route
-app.use('/api/user', require('./routes/authRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 // User edit delete
 app.use('/api/user', require('./routes/userRoutes'));
@@ -27,6 +27,9 @@ app.use('/api/restaurants', require('./routes/restaurantRoutes'));
 
 // Review routes
 app.use('/api/reviews', require('./routes/reviewRoutes'));
+
+//menu 
+app.use('/api/menu', require('./routes/menuRoutes'));
 
 // User restaurant routes (save and like)
 app.use('/api/user-restaurants', require('./routes/userRestaurantRoutes'));

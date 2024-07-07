@@ -1,20 +1,23 @@
 const express = require('express');
 const {
     getRestaurants,
-    getFeaturedRestaurants,
+    getRestaurantById,
     addRestaurant,
+    updateRestaurant,
+    deleteRestaurant,
     searchRestaurants,
-    getRestaurantById
-
+    getFeaturedRestaurants
 } = require('../controllers/restaurantController');
-const { authGuardAdmin } = require('../middleware/authGuard');
-const parser = require('../middleware/cloudinaryConfig');
+const { authGuard, authGuardAdmin } = require('../middleware/authGuard');
+const upload = require('../middleware/upload');
 const router = express.Router();
 
-router.get('/featured', getFeaturedRestaurants);
 router.get('/', getRestaurants);
-router.post('/', authGuardAdmin, parser.single('image'), addRestaurant);
 router.get('/search', searchRestaurants);
 router.get('/:id', getRestaurantById);
+router.post('/', authGuardAdmin, upload.single('image'), addRestaurant);
+router.put('/:id', authGuardAdmin, upload.single('image'), updateRestaurant);
+router.delete('/:id', authGuardAdmin, deleteRestaurant);
+router.get('/featured', getFeaturedRestaurants);
 
 module.exports = router;

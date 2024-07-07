@@ -1,48 +1,25 @@
-const mongoose = require('mongoose');
 const Review = require('../model/reviewModel');
-const Restaurant = require('../model/restaurantModel');
 
 const addReview = async (req, res) => {
-    const { rating, comment, restaurantId } = req.body;
-    const userId = req.user._id;
-
     try {
-        // Validate restaurant ID
-        if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid restaurant ID'
-            });
-        }
-
-        const restaurant = await Restaurant.findById(restaurantId);
-        if (!restaurant) {
-            return res.status(404).json({
-                success: false,
-                message: 'Restaurant not found'
-            });
-        }
+        const { restaurantId, rating, comment } = req.body;
+        const userId = req.user._id;
 
         const newReview = new Review({
-            rating,
-            comment,
             user: userId,
             restaurant: restaurantId,
+            rating,
+            comment
         });
 
         await newReview.save();
 
-        // Add the review to the restaurant's reviews array
-        restaurant.reviews.push(newReview._id);
-        await restaurant.save();
-
         res.status(201).json({
             success: true,
-            review: newReview,
-            message: 'Review added successfully'
+            review: newReview
         });
     } catch (error) {
-        console.error('Error adding review:', error.message);
+        console.error('Error adding review:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -51,25 +28,17 @@ const addReview = async (req, res) => {
     }
 };
 
-const getReviewsByRestaurantId = async (req, res) => {
-    const { restaurantId } = req.params;
-
-    // Validate restaurant ID
-    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid restaurant ID'
-        });
-    }
-
+const getReviews = async (req, res) => {
     try {
+        const { restaurantId } = req.params;
         const reviews = await Review.find({ restaurant: restaurantId }).populate('user', 'fullName');
+
         res.status(200).json({
             success: true,
             reviews
         });
     } catch (error) {
-        console.error('Error fetching reviews:', error.message);
+        console.error('Error fetching reviews:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -80,5 +49,5 @@ const getReviewsByRestaurantId = async (req, res) => {
 
 module.exports = {
     addReview,
-    getReviewsByRestaurantId
+    getReviews
 };

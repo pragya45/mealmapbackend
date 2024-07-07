@@ -1,121 +1,209 @@
-const mongoose = require('mongoose');
 const Restaurant = require('../model/restaurantModel');
-const parser = require('../middleware/cloudinaryConfig');
+const cloudinary = require('../middleware/cloudinaryConfig');
 
 const addRestaurant = async (req, res) => {
     try {
         const { name, category, description, rating, isFeatured, place } = req.body;
 
-        if (!mongoose.Types.ObjectId.isValid(category)) {
+        console.log('Request Body:', req.body); // Log the request body
+        console.log('File:', req.file); // Log the file
+
+        if (!req.file) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid category ID',
+                message: 'No image file provided'
             });
         }
 
-        const featured = req.user.isAdmin ? isFeatured === 'true' : false;
+        const imageUrl = req.file.path;
 
         const newRestaurant = new Restaurant({
             name,
             category,
             description,
-            rating: parseFloat(rating),
-            isFeatured: featured,
-            image: req.file.path,
-            place, // Ensure place is included here
+            rating,
+            isFeatured,
+            image: imageUrl,
+            place
         });
 
         await newRestaurant.save();
+
         res.status(201).json({
             success: true,
-            restaurant: newRestaurant,
+            restaurant: newRestaurant
         });
     } catch (error) {
+        console.error('Error adding restaurant:', error); // Log the error
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message,
+            error: error.message
         });
     }
 };
 
-const getFeaturedRestaurants = async (req, res) => {
+const updateRestaurant = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find({ isFeatured: true }).select('name image place');
-        console.log('Fetched featured restaurants:', restaurants); // Log the fetched data
+        const { name, category, description, rating, isFeatured, place } = req.body;
+
+        const updatedData = {
+            name,
+            category,
+            description,
+            rating,
+            isFeatured,
+            place
+        };
+
+        if (req.file) {
+            updatedData.image = req.file.path;
+        }
+
+        const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+            req.params.id,
+            updatedData,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedRestaurant) {
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
+        }
+
         res.status(200).json({
             success: true,
-            restaurants,
+            restaurant: updatedRestaurant
         });
     } catch (error) {
-        console.error('Error fetching featured restaurants:', error.message);
+        console.error('Error updating restaurant:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message,
+            error: error.message
         });
     }
 };
 
 
-const getRestaurants = async (req, res) => {
+const deleteRestaurant = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find();
+        const deletedRestaurant = await Restaurant.findByIdAndDelete(req.params.id);
+
+        if (!deletedRestaurant) {
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
+        }
+
         res.status(200).json({
             success: true,
-            restaurants,
+            message: 'Restaurant deleted successfully'
         });
     } catch (error) {
-        console.error('Error fetching restaurants:', error.message);
+        console.error('Error deleting restaurant:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message,
+            error: error.message
         });
     }
 };
 
-//search 
+
 const searchRestaurants = async (req, res) => {
     try {
-        const query = req.query.q;
-        const restaurants = await Restaurant.find({
-            $or: [
-                { name: { $regex: query, $options: 'i' } },
-                { description: { $regex: query, $options: 'i' } },
-                { place: { $regex: query, $options: 'i' } }
-            ]
-        });
+        const query = req.query.query;
+        const regex = new RegExp(query, 'i'); // 'i' for case-insensitive
+        const restaurants = await Restaurant.find({ name: { $regex: regex } }).populate('category', 'name');
         res.status(200).json({
             success: true,
             restaurants
         });
     } catch (error) {
+        console.error('Error searching restaurants:', error.message);
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message,
+            error: error.message
         });
     }
 };
 
-// Get restaurant details by ID
+// Fetch all restaurants
+const getRestaurants = async (req, res) => {
+    try {
+        const query = req.query.query || '';
+        const regex = new RegExp(query, 'i'); // 'i' for case-insensitive search
+        const restaurants = await Restaurant.find({ name: { $regex: regex } }).populate('category', 'name');
+
+        res.status(200).json({
+            success: true,
+            restaurants
+        });
+    } catch (error) {
+        console.error('Error fetching restaurants:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+
 const getRestaurantById = async (req, res) => {
     try {
-        const restaurant = await Restaurant.findById(req.params.id).populate('category reviews');
+        const restaurant = await Restaurant.findById(req.params.id).populate('category', 'name');
+
         if (!restaurant) {
-            return res.status(404).json({ success: false, message: 'Restaurant not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
         }
-        res.status(200).json({ success: true, restaurant });
+
+        res.status(200).json({
+            success: true,
+            restaurant
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+        console.error('Error fetching restaurant by ID:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+//
+const getFeaturedRestaurants = async (req, res) => {
+    try {
+        const featuredRestaurants = await Restaurant.find({ isFeatured: true }).populate('category', 'name');
+        res.status(200).json({
+            success: true,
+            restaurants: featuredRestaurants
+        });
+    } catch (error) {
+        console.error('Error fetching featured restaurants:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
 
 module.exports = {
     addRestaurant,
-    getFeaturedRestaurants,
-    getRestaurants,
+    updateRestaurant,
+    deleteRestaurant,
     searchRestaurants,
-    getRestaurantById
+    getRestaurants,
+    getRestaurantById,
+    getFeaturedRestaurants
 };

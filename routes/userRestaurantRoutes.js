@@ -1,12 +1,12 @@
 const express = require('express');
+const router = express.Router();
 const {
     saveRestaurant,
     likeRestaurant,
     getSavedRestaurants,
     getLikedRestaurants
 } = require('../controllers/userRestaurantController');
-const { authGuard } = require('../middleware/authGuard');
-const router = express.Router();
+const { authGuard } = require('../middleware/authGuard'); 
 
 router.post('/save/:restaurantId', authGuard, saveRestaurant);
 router.post('/like/:restaurantId', authGuard, likeRestaurant);

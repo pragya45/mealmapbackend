@@ -1,6 +1,6 @@
 const express = require('express');
 const { authGuard, authGuardAdmin } = require('../middleware/authGuard');
-const { register, login } = require('../controllers/authController');
+const { register, login, refreshToken } = require('../controllers/authController');
 const router = express.Router();
 
 // User registration route
@@ -18,5 +18,8 @@ router.get('/protected-route', authGuard, (req, res) => {
 router.get('/admin-route', authGuardAdmin, (req, res) => {
     res.status(200).json({ success: true, message: "You have access to this admin route" });
 });
+
+router.post('/refresh-token', refreshToken);
+
 
 module.exports = router;
