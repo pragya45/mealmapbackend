@@ -25,7 +25,9 @@ const getCategories = async (req, res) => {
 
 const getCategoryById = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id);
+        const categoryId = req.params.id;
+        console.log('Fetching category by ID:', categoryId);
+        const category = await Category.findById(categoryId);
         if (!category) {
             return res.status(404).json({
                 success: false,
@@ -116,10 +118,30 @@ const deleteCategory = async (req, res) => {
     }
 };
 
+const searchCategories = async (req, res) => {
+    try {
+        const query = req.query.query;
+        const regex = new RegExp(query, 'i'); // 'i' for case-insensitive
+        const categories = await Category.find({ name: { $regex: regex } });
+        res.status(200).json({
+            success: true,
+            categories
+        });
+    } catch (error) {
+        console.error('Error searching categories:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getCategories,
     getCategoryById,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    searchCategories
 };

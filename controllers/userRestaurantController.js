@@ -1,78 +1,196 @@
-const User = require('../model/userModel');
+const mongoose = require('mongoose');
+const UserRestaurant = require('../model/userRestaurant');
 const Restaurant = require('../model/restaurantModel');
 
-// Save a restaurant
-exports.saveRestaurant = async (req, res) => {
+// Validate MongoDB ObjectID
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+// Controller to get saved restaurants for a user
+const getSavedRestaurants = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const restaurantId = req.params.restaurantId;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (!user.savedRestaurants.includes(restaurantId)) {
-            user.savedRestaurants.push(restaurantId);
-        }
-
-        await user.save();
-        res.status(200).json({ message: 'Restaurant saved successfully' });
+        const userId = req.user._id;
+        const savedRestaurants = await UserRestaurant.find({ userId, isSaved: true }).populate('restaurantId');
+        res.status(200).json({
+            success: true,
+            restaurants: savedRestaurants.map(item => item.restaurantId)
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching saved restaurants:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
 
-// Like a restaurant
-exports.likeRestaurant = async (req, res) => {
+const getLikedRestaurants = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const restaurantId = req.params.restaurantId;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (!user.likedRestaurants.includes(restaurantId)) {
-            user.likedRestaurants.push(restaurantId);
-        }
-
-        await user.save();
-        res.status(200).json({ message: 'Restaurant liked successfully' });
+        console.log('Request User:', req.user);
+        const userId = req.user._id;
+        const likedRestaurants = await UserRestaurant.find({ userId, isLiked: true }).populate('restaurantId');
+        console.log('Liked Restaurants:', likedRestaurants);
+        res.status(200).json({
+            success: true,
+            restaurants: likedRestaurants.map(item => item.restaurantId)
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching liked restaurants:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
 
-// Get saved restaurants
-exports.getSavedRestaurants = async (req, res) => {
-    try {
-        const userId = req.user.id;
 
-        const user = await User.findById(userId).populate('savedRestaurants');
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+
+// Controller to save a restaurant for a user
+const saveRestaurant = async (req, res) => {
+    try {
+        const { restaurantId } = req.body;
+        const userId = req.user._id;
+
+        if (!isValidObjectId(restaurantId)) {
+            return res.status(400).json({ success: false, message: 'Invalid Restaurant ID' });
         }
 
-        res.status(200).json(user.savedRestaurants);
+        let userRestaurant = await UserRestaurant.findOne({ userId, restaurantId });
+
+        if (!userRestaurant) {
+            userRestaurant = new UserRestaurant({
+                userId,
+                restaurantId,
+                isSaved: true,
+                isLiked: false
+            });
+        } else {
+            userRestaurant.isSaved = true;
+        }
+
+        await userRestaurant.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Restaurant saved successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error saving restaurant:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
 
-// Get liked restaurants
-exports.getLikedRestaurants = async (req, res) => {
+// Controller to like a restaurant for a user
+const likeRestaurant = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const { restaurantId } = req.body;
+        const userId = req.user._id;
 
-        const user = await User.findById(userId).populate('likedRestaurants');
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        if (!isValidObjectId(restaurantId)) {
+            return res.status(400).json({ success: false, message: 'Invalid Restaurant ID' });
         }
 
-        res.status(200).json(user.likedRestaurants);
+        let userRestaurant = await UserRestaurant.findOne({ userId, restaurantId });
+
+        if (!userRestaurant) {
+            userRestaurant = new UserRestaurant({
+                userId,
+                restaurantId,
+                isSaved: false,
+                isLiked: true
+            });
+        } else {
+            userRestaurant.isLiked = true;
+        }
+
+        await userRestaurant.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Restaurant liked successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error liking restaurant:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
+};
+
+// Controller to remove a restaurant from saved
+const unsaveRestaurant = async (req, res) => {
+    try {
+        const { restaurantId } = req.body;
+        const userId = req.user._id;
+
+        if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+            return res.status(400).json({ success: false, message: 'Invalid Restaurant ID' });
+        }
+
+        const userRestaurant = await UserRestaurant.findOne({ userId, restaurantId });
+
+        if (userRestaurant) {
+            userRestaurant.isSaved = false;
+            await userRestaurant.save();
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Restaurant removed from saved'
+        });
+    } catch (error) {
+        console.error('Error unsaving restaurant:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Controller to remove a restaurant from liked
+const unlikeRestaurant = async (req, res) => {
+    try {
+        const { restaurantId } = req.body;
+        const userId = req.user._id;
+
+        if (!isValidObjectId(restaurantId)) {
+            return res.status(400).json({ success: false, message: 'Invalid Restaurant ID' });
+        }
+
+        const userRestaurant = await UserRestaurant.findOne({ userId, restaurantId });
+
+        if (userRestaurant) {
+            userRestaurant.isLiked = false;
+            await userRestaurant.save();
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Restaurant removed from liked'
+        });
+    } catch (error) {
+        console.error('Error unliking restaurant:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+module.exports = {
+    getSavedRestaurants,
+    getLikedRestaurants,
+    saveRestaurant,
+    likeRestaurant,
+    unsaveRestaurant,
+    unlikeRestaurant
 };

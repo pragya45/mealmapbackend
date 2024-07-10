@@ -1,16 +1,21 @@
 const express = require('express');
-const router = express.Router();
+const { authGuard } = require('../middleware/authGuard');
 const {
+    getSavedRestaurants,
+    getLikedRestaurants,
     saveRestaurant,
     likeRestaurant,
-    getSavedRestaurants,
-    getLikedRestaurants
+    unsaveRestaurant,
+    unlikeRestaurant
 } = require('../controllers/userRestaurantController');
-const { authGuard } = require('../middleware/authGuard'); 
 
-router.post('/save/:restaurantId', authGuard, saveRestaurant);
-router.post('/like/:restaurantId', authGuard, likeRestaurant);
+const router = express.Router();
+
 router.get('/saved', authGuard, getSavedRestaurants);
 router.get('/liked', authGuard, getLikedRestaurants);
+router.post('/save', authGuard, saveRestaurant);
+router.post('/like', authGuard, likeRestaurant);
+router.post('/unsave', authGuard, unsaveRestaurant);
+router.post('/unlike', authGuard, unlikeRestaurant);
 
 module.exports = router;

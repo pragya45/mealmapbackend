@@ -18,14 +18,18 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    savedRestaurants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Restaurant',
-    }],
-    likedRestaurants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Restaurant',
-    }],
+    savedRestaurants: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Restaurant'
+        }
+    ],
+    likedRestaurants: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Restaurant'
+        }
+    ],
     gender: {
         type: String,
         default: '',

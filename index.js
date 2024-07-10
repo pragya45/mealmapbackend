@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require("cors");
 const env = require('dotenv');
 const connectDB = require('./database/db');
 
@@ -7,6 +8,9 @@ env.config();
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Enable CORS
+app.use(cors());
 
 // Connect to database
 connectDB();
@@ -28,7 +32,7 @@ app.use('/api/restaurants', require('./routes/restaurantRoutes'));
 // Review routes
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 
-//menu 
+// Menu 
 app.use('/api/menu', require('./routes/menuRoutes'));
 
 // User restaurant routes (save and like)

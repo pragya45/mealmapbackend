@@ -1,5 +1,6 @@
 const Restaurant = require('../model/restaurantModel');
 const cloudinary = require('../middleware/cloudinaryConfig');
+const mongoose = require('mongoose');
 
 const addRestaurant = async (req, res) => {
     try {
@@ -19,7 +20,7 @@ const addRestaurant = async (req, res) => {
 
         const newRestaurant = new Restaurant({
             name,
-            category,
+            category: new mongoose.Types.ObjectId(category),
             description,
             rating,
             isFeatured,
@@ -49,7 +50,7 @@ const updateRestaurant = async (req, res) => {
 
         const updatedData = {
             name,
-            category,
+            category: new mongoose.Types.ObjectId(category),
             description,
             rating,
             isFeatured,
@@ -87,7 +88,6 @@ const updateRestaurant = async (req, res) => {
     }
 };
 
-
 const deleteRestaurant = async (req, res) => {
     try {
         const deletedRestaurant = await Restaurant.findByIdAndDelete(req.params.id);
@@ -112,7 +112,6 @@ const deleteRestaurant = async (req, res) => {
         });
     }
 };
-
 
 const searchRestaurants = async (req, res) => {
     try {
@@ -154,10 +153,19 @@ const getRestaurants = async (req, res) => {
     }
 };
 
-
 const getRestaurantById = async (req, res) => {
     try {
-        const restaurant = await Restaurant.findById(req.params.id).populate('category', 'name');
+        const restaurantId = req.params.id;
+
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid Restaurant ID'
+            });
+        }
+
+        const restaurant = await Restaurant.findById(restaurantId).populate('category', 'name');
 
         if (!restaurant) {
             return res.status(404).json({
@@ -180,7 +188,6 @@ const getRestaurantById = async (req, res) => {
     }
 };
 
-//
 const getFeaturedRestaurants = async (req, res) => {
     try {
         const featuredRestaurants = await Restaurant.find({ isFeatured: true }).populate('category', 'name');
@@ -198,6 +205,67 @@ const getFeaturedRestaurants = async (req, res) => {
     }
 };
 
+
+
+const getRestaurantsByCategory = async (req, res) => {
+    const { category } = req.query;
+
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid category ID'
+        });
+    }
+
+    try {
+        const restaurants = await Restaurant.find({ category: new mongoose.Types.ObjectId(category) }).populate('category', 'name');
+        res.status(200).json({
+            success: true,
+            restaurants
+        });
+    } catch (error) {
+        console.error('Error fetching restaurants by category:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+
+const searchRestaurantsByCategory = async (req, res) => {
+    try {
+        const { category, query } = req.query;
+
+        if (!mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid category ID'
+            });
+        }
+
+        const regex = new RegExp(query, 'i'); // 'i' for case-insensitive
+        const restaurants = await Restaurant.find({
+            category: new mongoose.Types.ObjectId(category),
+            name: { $regex: regex }
+        }).populate('category', 'name');
+
+        res.status(200).json({
+            success: true,
+            restaurants
+        });
+    } catch (error) {
+        console.error('Error searching restaurants by category:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+
 module.exports = {
     addRestaurant,
     updateRestaurant,
@@ -205,5 +273,7 @@ module.exports = {
     searchRestaurants,
     getRestaurants,
     getRestaurantById,
-    getFeaturedRestaurants
+    getFeaturedRestaurants,
+    getRestaurantsByCategory,
+    searchRestaurantsByCategory
 };
