@@ -155,6 +155,7 @@ const unsaveRestaurant = async (req, res) => {
     }
 };
 
+
 // Controller to remove a restaurant from liked
 const unlikeRestaurant = async (req, res) => {
     try {
@@ -186,11 +187,53 @@ const unlikeRestaurant = async (req, res) => {
     }
 };
 
+// Controller to rate a restaurant for a user
+const rateRestaurant = async (req, res) => {
+    try {
+        const { restaurantId, rating } = req.body;
+        const userId = req.user._id;
+
+        if (!isValidObjectId(restaurantId)) {
+            return res.status(400).json({ success: false, message: 'Invalid Restaurant ID' });
+        }
+
+        let userRestaurant = await UserRestaurant.findOne({ userId, restaurantId });
+
+        if (!userRestaurant) {
+            userRestaurant = new UserRestaurant({
+                userId,
+                restaurantId,
+                rating: rating,
+                isSaved: false,
+                isLiked: false
+            });
+        } else {
+            userRestaurant.rating = rating;
+        }
+
+        await userRestaurant.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Restaurant rated successfully',
+            rating: userRestaurant.rating
+        });
+    } catch (error) {
+        console.error('Error rating restaurant:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getSavedRestaurants,
     getLikedRestaurants,
     saveRestaurant,
     likeRestaurant,
     unsaveRestaurant,
-    unlikeRestaurant
+    unlikeRestaurant,
+    rateRestaurant
 };

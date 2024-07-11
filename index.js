@@ -41,6 +41,9 @@ app.use('/api/user-restaurants', require('./routes/userRestaurantRoutes'));
 // Category routes
 app.use('/api/categories', require('./routes/categoryRoutes'));
 
+//sort routes
+app.use('/api/sort', require('./routes/sortRoutes'));
+
 const PORT = process.env.PORT || 5000;
 
 // Run the server

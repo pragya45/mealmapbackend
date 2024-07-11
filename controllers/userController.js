@@ -4,7 +4,7 @@ const User = require('../model/userModel');
 // Get User Profile
 const getUserProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('-password'); // exclude password
+        const user = await User.findById(req.user._id).select('-password'); // Exclude password
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -14,7 +14,7 @@ const getUserProfile = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            user
+            user // Ensure the user object is returned here
         });
     } catch (error) {
         console.error('Error fetching user profile:', error.message);

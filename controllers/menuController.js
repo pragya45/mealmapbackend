@@ -56,7 +56,26 @@ const getMenuItems = async (req, res) => {
     }
 };
 
+const getPopularItems = async (req, res) => {
+    try {
+        const { restaurantId } = req.params;
+        const popularItems = await MenuItem.find({ restaurant: restaurantId }).sort({ rating: -1 }).limit(5);
+        res.status(200).json({
+            success: true,
+            items: popularItems
+        });
+    } catch (error) {
+        console.error('Error fetching popular items:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     addMenuItem,
-    getMenuItems
+    getMenuItems,
+    getPopularItems
 };

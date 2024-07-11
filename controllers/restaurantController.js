@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const addRestaurant = async (req, res) => {
     try {
-        const { name, category, description, rating, isFeatured, place } = req.body;
+        const { name, category, description, rating, isFeatured, place, opening_time, closing_time } = req.body;
 
         console.log('Request Body:', req.body); // Log the request body
         console.log('File:', req.file); // Log the file
@@ -25,7 +25,9 @@ const addRestaurant = async (req, res) => {
             rating,
             isFeatured,
             image: imageUrl,
-            place
+            place,
+            opening_time,  // Add opening_time
+            closing_time   // Add closing_time
         });
 
         await newRestaurant.save();
@@ -153,6 +155,41 @@ const getRestaurants = async (req, res) => {
     }
 };
 
+// const getRestaurantById = async (req, res) => {
+//     try {
+//         const restaurantId = req.params.id;
+
+//         // Validate ObjectId
+//         if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'Invalid Restaurant ID'
+//             });
+//         }
+
+//         const restaurant = await Restaurant.findById(restaurantId).populate('category', 'name');
+
+//         if (!restaurant) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Restaurant not found'
+//             });
+//         }
+
+//         res.status(200).json({
+//             success: true,
+//             restaurant
+//         });
+//     } catch (error) {
+//         console.error('Error fetching restaurant by ID:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Server error',
+//             error: error.message
+//         });
+//     }
+// };
+
 const getRestaurantById = async (req, res) => {
     try {
         const restaurantId = req.params.id;
@@ -165,7 +202,7 @@ const getRestaurantById = async (req, res) => {
             });
         }
 
-        const restaurant = await Restaurant.findById(restaurantId).populate('category', 'name');
+        const restaurant = await Restaurant.findById(restaurantId).populate('category', 'name').populate('reviews');
 
         if (!restaurant) {
             return res.status(404).json({

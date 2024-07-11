@@ -1,5 +1,7 @@
 // const jwt = require('jsonwebtoken');
+// const User = require('../model/userModel');
 
+// // Middleware to protect routes
 // const authGuard = (req, res, next) => {
 //     const authHeader = req.headers.authorization;
 //     if (!authHeader) {
@@ -30,7 +32,8 @@
 //     }
 // };
 
-// const authGuardAdmin = (req, res, next) => {
+// // Middleware to protect admin routes
+// const authGuardAdmin = async (req, res, next) => {
 //     const authHeader = req.headers.authorization;
 //     if (!authHeader) {
 //         return res.status(401).json({
@@ -58,11 +61,50 @@
 //         }
 //         next();
 //     } catch (error) {
-//         console.error("Admin token verification error:", error);
-//         return res.status(401).json({
-//             success: false,
-//             message: "Invalid token!"
-//         });
+//         if (error.name === 'TokenExpiredError') {
+//             // Handle token expiration
+//             const newToken = await refreshToken(token);
+//             if (newToken) {
+//                 res.setHeader('Authorization', `Bearer ${newToken}`);
+//                 const decodedData = jwt.verify(newToken, process.env.JWT_SECRET);
+//                 req.user = { _id: decodedData.id, isAdmin: decodedData.isAdmin };
+//                 if (!decodedData.isAdmin) {
+//                     return res.status(403).json({
+//                         success: false,
+//                         message: "Permission denied!"
+//                     });
+//                 }
+//                 next();
+//             } else {
+//                 return res.status(401).json({
+//                     success: false,
+//                     message: "Token expired and refresh failed"
+//                 });
+//             }
+//         } else {
+//             console.error("Admin token verification error:", error);
+//             return res.status(401).json({
+//                 success: false,
+//                 message: "Invalid token!"
+//             });
+//         }
+//     }
+// };
+
+// // Function to refresh token
+// const refreshToken = async (expiredToken) => {
+//     try {
+//         const { email } = jwt.decode(expiredToken);
+//         const user = await User.findOne({ email });
+//         if (!user) {
+//             throw new Error('User not found');
+//         }
+
+//         const newToken = jwt.sign({ id: user._id, email: user.email, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+//         return newToken;
+//     } catch (error) {
+//         console.error('Token refresh failed:', error);
+//         return null;
 //     }
 // };
 
@@ -70,7 +112,6 @@
 //     authGuard,
 //     authGuardAdmin,
 // };
-
 const jwt = require('jsonwebtoken');
 const User = require('../model/userModel');
 

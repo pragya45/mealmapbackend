@@ -6,7 +6,8 @@ const {
     saveRestaurant,
     likeRestaurant,
     unsaveRestaurant,
-    unlikeRestaurant
+    unlikeRestaurant,
+    rateRestaurant
 } = require('../controllers/userRestaurantController');
 
 const router = express.Router();
@@ -17,5 +18,7 @@ router.post('/save', authGuard, saveRestaurant);
 router.post('/like', authGuard, likeRestaurant);
 router.post('/unsave', authGuard, unsaveRestaurant);
 router.post('/unlike', authGuard, unlikeRestaurant);
+router.post('/rate', authGuard, rateRestaurant);
+
 
 module.exports = router;

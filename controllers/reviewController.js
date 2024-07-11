@@ -1,9 +1,10 @@
 const Review = require('../model/reviewModel');
+const Restaurant = require('../model/restaurantModel');
 
 const addReview = async (req, res) => {
     try {
         const { restaurantId, rating, comment } = req.body;
-        const userId = req.user._id;
+        const userId = req.user._id; // Ensure req.user._id is being correctly populated
 
         const newReview = new Review({
             user: userId,
@@ -13,6 +14,11 @@ const addReview = async (req, res) => {
         });
 
         await newReview.save();
+
+        // Update the restaurant's reviews array
+        const restaurant = await Restaurant.findById(restaurantId);
+        restaurant.reviews.push(newReview._id);
+        await restaurant.save();
 
         res.status(201).json({
             success: true,
@@ -47,7 +53,39 @@ const getReviews = async (req, res) => {
     }
 };
 
+
+const deleteReview = async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const userId = req.user._id;
+
+        const review = await Review.findOneAndDelete({ _id: reviewId, user: userId });
+
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                message: 'Review not found or you are not authorized to delete this review',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Review deleted successfully',
+        });
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message,
+        });
+    }
+};
+
+
+
 module.exports = {
     addReview,
-    getReviews
+    getReviews,
+    deleteReview
 };
