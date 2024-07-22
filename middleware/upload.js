@@ -1,16 +1,30 @@
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-const cloudinary = require('./cloudinaryConfig');
+const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'mealmap/restaurants',
-        format: async (req, file) => 'png',
-        public_id: (req, file) => Date.now() + '-' + file.originalname.split('.')[0],
+        folder: 'uploads', // Folder name in Cloudinary
+        format: async (req, file) => 'png', // supports promises as well
+        public_id: (req, file) => Date.now() + path.extname(file.originalname)
     },
 });
 
-const parser = multer({ storage: storage });
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 1000000 }, // 1MB limit
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|gif/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb('Error: Images Only!');
+        }
+    }
+});
 
-module.exports = parser;
+module.exports = upload;

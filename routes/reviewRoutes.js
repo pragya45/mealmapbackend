@@ -7,5 +7,4 @@ router.post('/', authGuard, addReview);
 router.get('/:restaurantId', getReviews);
 router.delete('/:reviewId', authGuard, deleteReview);
 
-
 module.exports = router;

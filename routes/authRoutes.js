@@ -21,5 +21,4 @@ router.get('/admin-route', authGuardAdmin, (req, res) => {
 
 router.post('/refresh-token', refreshToken);
 
-
 module.exports = router;

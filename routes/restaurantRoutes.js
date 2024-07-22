@@ -24,4 +24,5 @@ router.post('/', authGuardAdmin, upload.single('image'), addRestaurant);
 router.put('/:id', authGuardAdmin, upload.single('image'), updateRestaurant);
 router.delete('/:id', authGuardAdmin, deleteRestaurant);
 
+
 module.exports = router;

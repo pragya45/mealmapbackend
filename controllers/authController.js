@@ -20,8 +20,9 @@ const register = async (req, res) => {
             });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ fullName, email, password: hashedPassword });
+        console.log(password);
+
+        const user = await User.create({ fullName, email, password });
         res.status(201).json({
             success: true,
             user,
@@ -36,6 +37,7 @@ const register = async (req, res) => {
         });
     }
 };
+
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -57,7 +59,11 @@ const login = async (req, res) => {
             });
         }
 
-        const isMatched = await bcrypt.compare(password, user.password);
+        // Log the password and hashed password for debugging
+        console.log('Provided password:', password);
+        console.log('Stored hashed password:', user.password);
+
+        const isMatched = bcrypt.compareSync(password, user.password);
         if (!isMatched) {
             console.log('Password does not match');
             return res.status(400).json({
@@ -97,16 +103,13 @@ const refreshToken = async (req, res) => {
     }
 
     try {
-        // Verify the old token
         const decoded = jwt.verify(oldToken, process.env.JWT_SECRET, { ignoreExpiration: true });
 
-        // Find the user
         const user = await User.findById(decoded.id);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Issue a new token
         const newToken = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.status(200).json({ token: newToken });
@@ -114,7 +117,6 @@ const refreshToken = async (req, res) => {
         res.status(500).json({ message: "Failed to refresh token", error: error.message });
     }
 };
-
 
 module.exports = {
     register,
